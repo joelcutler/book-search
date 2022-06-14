@@ -44,13 +44,19 @@ const resolvers = {
     },
 
     saveBook: async (parent, { input }, context) => {
-      // console.log(context);
+      // console.log(input);
       if (context.user) {
+        // const book = await Book.create({
+        //   input,
+        //   username: context.user.username,
+        // });
+
         const updatedUser = await User.findByIdAndUpdate(
           { _id: context.user._id },
           { $push: { savedBooks: input } },
           { new: true }
         );
+        console.log("updatedUser", updatedUser);
 
         return updatedUser;
       }
@@ -59,19 +65,21 @@ const resolvers = {
     },
 
     removeBook: async (parent, args, context) => {
+      console.log(context.user, "context");
+      console.log(args.bookId, "args");
       if (context.user) {
-        const book = await Book.delete({
-          ...args,
-          username: context.user.username,
-        });
+        // const updatedUser = await User.findByIdAndUpdate({
+        //   _id: args.bookId,
+        //   username: context.user.username,
+        // });
 
-        await User.findByIdAndUpdate(
+        const updatedUser = await User.findByIdAndUpdate(
           { _id: context.user._id },
-          { $push: { savedBooks: book.bookId } },
+          { $pull: { savedBooks: { bookId: args.bookId } } },
           { new: true }
         );
 
-        return book;
+        return updatedUser;
       }
 
       throw new AuthenticationError("You need to be logged in!");
